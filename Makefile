@@ -3,12 +3,7 @@ beepy-kbd-objs += src/main.o src/input_iface.o src/params_iface.o \
 	src/sysfs_iface.o src/ioctl_iface.o
 ccflags-y := -DDEBUG -g -std=gnu99 -Wno-declaration-after-statement
 
-dtb-y += beepy-kbd.dtbo
-
-targets += $(dtbo-y)    
-always  := $(dtbo-y)
-
-.PHONY: all clean install install_modules install_aux uninstall
+.PHONY: all dtbo clean install install_modules install_aux uninstall
 
 # LINUX_DIR is set by Buildroot, but not if running manually
 ifeq ($(LINUX_DIR),)
@@ -26,12 +21,26 @@ KMAP_LINE := KMAP=/usr/share/kbd/keymaps/beepy-kbd.map
 all:
 	$(MAKE) -C '$(LINUX_DIR)' M='$(shell pwd)'
 
+modules:
+	$(MAKE) -C '$(LINUX_DIR)' M='$(shell pwd)'
+
+dtbo: beepy-kbd.dtbo
+
+beepy-kbd.dtbo: beepy-kbd.dts
+	@echo "Building device tree overlay..."
+	@if command -v dtc >/dev/null 2>&1; then \
+		dtc -@ -I dts -O dtb -o beepy-kbd.dtbo beepy-kbd.dts; \
+	else \
+		echo "Warning: dtc not found, skipping device tree overlay build"; \
+		touch beepy-kbd.dtbo; \
+	fi
+
 install_modules:
 	$(MAKE) -C '$(LINUX_DIR)' M='$(shell pwd)' modules_install
 	# Rebuild dependencies
 	depmod -A
 
-install: install_modules install_aux
+install: install_modules dtbo install_aux
 
 # Separate rule to be called from DKMS
 install_aux:
@@ -70,3 +79,4 @@ uninstall:
 
 clean:
 	$(MAKE) -C '$(LINUX_DIR)' M='$(shell pwd)' clean
+	rm -f beepy-kbd.dtbo

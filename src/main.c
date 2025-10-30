@@ -24,7 +24,7 @@
 #error "Only supporting BBQ20 keyboard right now"
 #endif
 
-static int bbqX0kbd_probe(struct i2c_client* i2c_client, struct i2c_device_id const* i2c_id)
+static int bbqX0kbd_probe(struct i2c_client* i2c_client)
 {
 	int rc;
 

@@ -163,7 +163,7 @@ static int rtc_dev_release(struct inode *inode, struct file *file)
 
 static const struct file_operations fops = {
 	.owner		= THIS_MODULE,
-	.llseek		= no_llseek,
+	.llseek		= noop_llseek,
 	.read		= rtc_dev_read,
 	.poll		= rtc_dev_poll,
 	.unlocked_ioctl	= rtc_dev_ioctl,
@@ -185,7 +185,7 @@ int ioctl_probe(void)
 		return rc;
 	}
 
-	g_class = class_create(THIS_MODULE, "rtc_class");
+	g_class = class_create("rtc_class");
 	device_create(g_class, NULL, g_dev, NULL, "rtc");
 
 	cdev_init(&g_cdev, &fops);
